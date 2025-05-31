@@ -1,0 +1,141 @@
+analyze the given excel files and recognize the patterns based on which we can put the required data from headers and percentages in output columns.
+write the python code that asks user to provide excel grid and after processing gives the output excel that contains the following columns : 
+
+"cluster_code", "bike_make", "model", "plan_type", "engine_type", "fuel_type",
+    "plan_subtype", "add_on", "plan_term", "business_slab", "age", "po_percent",
+    "slab_month", "remark", "product_type", "ncb", "vehicle", "veh_type",
+    "seating_cap", "gvw"
+
+
+algorithm of extracting ICICI grid:
+
+comparision between found keywords in grid and our hardcoded values should be performed as case in-sensitve
+
+example iteration : 
+1.check top 15 rows the one where you don't find percentages than that might be the header columns.
+
+2.column where you find RTO cluster header have states names data.
+
+first iteration:
+1.suppose RTO cluster column's first entry is "Andaman & Nicobar" then in the output csv , cluster_code column will have 1st entry as "Andaman & Nicobar"
+
+then check the keywords mentioned in next headers :
+1. if "GCV" keyword found then include that in "veh_type" Column of output,
+"product_type" in output will become "Commercial Vehicle" , if in same header other vehicle or bike_make values are not mentioned then keep those columns blank.
+
+2.if "3W","4W","2W" is found then include that in vehicle column of output.
+
+3. if "New" is found then include that in "age" column of output.
+
+Example : suppose the header mentions "GCV 3W New" then mapping will happen as i told above and since header information is filled and nothing else is mentioned then we will move on to its rows entries below and the respective row entry(here it is first row entry) suppose it mentions "15%" then this "15%" will go in "po_percent" column of output. if instead of percentage value and given keywords(that will go in other column of outputs) you find something else than that will be included as it is in po_percent column. so don't skip any entry in output rows include all.
+
+suppose the main header don't mention "New" or something else and the row entry(the percentage cell) mentions : like "50% on new" then "new" will come under "age" column of output.(in this type too the respective keywords will go in respective output columns.
+
+so this is how we made our first row entries with the header combination and state_name and percentage value. this basically specifies that for this type of combination the pay out percentage wil be 15%.
+
+this is how you have to fill other column information in output from the grid headers.
+
+other keywords and where they will go in output:
+
+if "Old" keyword is found then it will go in "age" column of output.
+
+if "Electric" keyword is found then it will go in "fuel_type" column of output.
+
+if "SCV" keyword is found then in output veh_type will become "GCV" and product_type will be "Commercial Vehicle"
+
+suppose in header it is mentioned like "<2450 GVW" then this "<2450" will go in "gvw" column in output.( or whatever is mentioned for example "<2500",">2500" will go in gvw column , so recognize the pattern loosely i.e number and sign before "GVW" keyword or only number before GVW keyword. or number after ">=" ,"<" etc signs. then include that whole number with sign in gvw column.
+
+
+suppose in percentage cell you found keyword suppose "TATA" etc then this will go in bike_make column. 
+
+if find more words other than percentage in percentage cell then the whole line of text of that cell should be included in "remark" column of output.
+
+don't expect the information in the header or percentage to be in single line only, information can appear like this too
+"1-5 yrs 45% 
+>5 yrs 55%
+only TATA in WB1"
+so check all lines and fit the keywords respectively in output columns.
+
+now multiple percentage can be mentioned in one cell based on various conditions
+for example : 
+"1-5 yrs 45% 
+>5 yrs 55%
+only TATA in WB1".
+now here in output 2 separate row entries will be formed i.e main header keywords will be put in same colums of output respectively but whatever mentioned in percentage cell i.e "1-5 yrs", ">5 yrs"(>5 years), "Above 5 year","1-6 years"(sometimes due to human error it can happen that they forget to write "year" i.e they can mention like "1-5age" so still include them in age column) etc will go in "age" column and TATA(this bike makes list will be provided) will go in bike_make. 2 separate rows will be formed one will have age column as "1-5 yrs" and remaning other headers same and other row will have ">5 yrs" and other headers combination same. this are just examples consider the variations that can come and this is why focus on pattern matching rather than hardcoded values because spacing can come in between /n can come in between.
+
+and wherever you find this type of Codes "WB1"(a list will be provided for this type of codes so if any of the codes from list you find) and "only" keyword is present then this means that only for WB1 and TATA this percentages are applicable. then in this particular situation "cluster_code" will be "WB1" and not the one mentioned in RTO cluster column. focus on pattern matching since sometimes due to human error they can type the value as "WB1only" this are 2 separate keywords but written as one word.
+
+
+if "LCV" keyword is found then veh_type in output will become "GCV".
+
+if you find pattern like "3.5-7.5T", "7.5-12T" etc .then include this in "gvw" column of output. in actual header you can find something like "LCV 3.5-7.5T" etc. focus on tonnage weight provided. newline can come in between. and it may be mentioned as ">40T".
+
+
+for different cluster_code x percentage x header keywords separate row entries will be formed.
+
+
+if "MHCV" keyword is found then include "GCV" in veh_type column of output.
+
+"Tanker","Tipper" ,"Truck","Trailer","Dumper","Cranes","Tractor","tracter","Bus","School Bus","Staff Bus"(you can find keyword "Bus" and include whole word whatever mentioned in vehicle column of output). for "Bus" veh_type will be "PCV"
+and for other vehicles found except bus will have veh_type = "MISC"
+
+
+whenever more than one vehicle or bike_make mentioned in same headers than for every vehicle and bike_make separate row entries will be formed in output. also bike_make and vehicle shouldn't come as same row entry i.e under same combination, different row entries will be formed . for example one combination with bike_make keeping vehicle column blank and vice versa for vehicle column entry by keeping bike_make blank.
+
+whatever mentioned in percentage cell should be mentioned as it is in po_percent column of output.
+
+if you find "MISC" keyword with "CE" keyword than it should be included in veh_type column as "MISC" and vehicle column will have "CE".
+
+if you find "Excluding", "Except" this type of keywords then include that whole line of text in "remark" column of output. whenever you find bike_make or vehicle values after this keywords than that should not be included in bike_make or vehicle columns(they should be kept blank).
+
+
+if "PCV" keyword is found then that should be included directly in veh_type column.
+
+if "Petrol","CNG","Bifuel","Diesel" etc are found than that should be included in fuel_type column of output. if more than one fuel_type is mentioned in same header than every fuel_type will have separate row entries in output keeping other values same.
+
+if "Non DL" keyword is found and after that there is a percentage value like "DL-30%, Non DL RTO-50%" this "DL" and "Non DL" are just like we mentioned above "WB1" and i told you that i will provide this type of code list and you know what to do. so same procedure for this type of codes like we defined for "WB1".
+but here "DL" has 30% so one row entry will contain cluster_code as DL and po_percent will be 30% and other row entry will be 50% with cluster_code as Non DL. so whenever multiple codes are mentioned in same header or cell then they will have separate row entries with there respective percentage.
+
+if "others" keyword is found with some bike_make for example "45% on TATA
+others 16%" then 45% will be in the combination where bike_make will be "TATA" (you can take percentage value just before an bike_make to be sure that that percentage belongs to that bike_make)and other separate row entry will be with bike_make blank and po_percent will be 16%.
+
+"26% (old, Tata & Eicher) 20% (Old, others)" in this type of values too you can take percentage just before the keywords to be sure that this percentage belongs to this combination and other percentage belongs to keywords mentioned after that. for example here the combination will be made as : 
+a. "age" : old , "bike_make" : TATA,"po_percent":26% ,other values of columns same as found in header.
+
+b. "age" : old , "bike_make" : Eicher,"po_percent":26% ,other values of columns same as found in header.
+
+c. "age" : old , "bike_make" will be blank,"po_percent":20% ,other values of columns same as found in header.
+
+sometimes it can happen that "%" symbol is not mentioned after number but still treat it as percentage.
+
+
+if you find keywords like "<50 HP",">50 HP","Above 50HP" etc here HP means Horse Power so this keywords should be included in engine_type column of output.
+
+percentage can also be mentioned as "10% on new and 1st year" so here this "new and 1st year" should be mentioned in remark column of output and also "new" in age column.
+
+
+if after "Bus" keyword there is something mentioned like "<18"(space or newline can come between sign and number),"18-36",">36",">18 upto 36 seater" than this ranges should be included in seating_capacity column of output.(recognize this type of patterns not exactly this type of values)
+
+if "Taxi" keyword is found than include this vehicle column and veh_type column will be "PCV" . sometimes due to human error it can happen that they combine different words example :"PCVTAXI_ELECTRIC" here "Taxi" is different and should be included in vehicle column.
+
+if you find keywords like "<=1000cc" i.e number and "CC" then include that whole number with "CC" and "<=",">=" ,"<",">"(signs if mentioned) in engine_type column of output.
+
+if you find any of keywords like "AOTP" ,"SATP","TP" then include "SATP" in plan_type column of output.
+
+if you find any of keywords like "on OD" then plan_type will be "SAOD"
+
+if you find keyword like "Comp" then plan_type will be populated as "Comp"
+here too same mechanics the percentage value before the keywords belongs to those keywords i.e percentage on left side of keywords will be belonging to combinations of those keywords.
+
+if you find something in"()" then text present in these paranthesis should be included in "remark" column of output. for example : "(city meter only)" then this will be included in remark column of output.
+
+
+in the same sheet you might again find another table that contains same type of columns with "RTO cluster" column mentioned again.(this is the hint that if "RTO cluster" is found again then there is another table present in same sheet) then this too will be parsed same way as first table,but here there might be a main header mentioned(at very top) which can contain information for various output columns.so since this is the main header then for all the iteration and rows formed from this table will have the values mentioned in main header.
+for example suppose the main header mentions "MHCV-AOTP GRID (> 5 Years, TATA & AL only)" 
+then for all the row entries formed from this table will have "age" column value as  "> 5 Years", "bike_make" column value as "TATA" and with same values other seperate row entries will be formed keeping "bike_make" as "AL" since TATA and AL are different bike_make but are of bike_make category.(list will be provided for bike_makes.so this is how separate row entries will be formed for this table too.
+
+
+and this is how you will move to next rows and columns finding combination that are forming the percentages and will fill in data in output excel.
+
+
+
